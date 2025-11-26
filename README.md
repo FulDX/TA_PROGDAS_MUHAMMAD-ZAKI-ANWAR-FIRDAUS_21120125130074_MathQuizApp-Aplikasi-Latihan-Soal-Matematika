@@ -1,1 +1,1 @@
-# MentalMathApp
+# MathQuizApp
