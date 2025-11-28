@@ -6,10 +6,15 @@ Sebuah aplikasi GUI berbasis Python yang berisi soal hitung-hitungan matematika,
 
 ## Instalasi
 
-Clone repository lalu install requirements
+Clone repository github
 
 ```bash
 git clone https://github.com/FulDX/TA_PROGDAS_MUHAMMAD-ZAKI-ANWAR-FIRDAUS_21120125130074_MathQuizApp-Aplikasi-Latihan-Soal-Matematika.git
+```
+
+Lalu install requirements
+
+```bash
 pip install -r requirements.txt
 ```
 
