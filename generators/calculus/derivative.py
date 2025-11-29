@@ -1,6 +1,7 @@
 import sympy as sp
 import random
 from mathapp.core import Question, latexify
+from generators.utils import random_poly_nonconstant
 
 x = sp.symbols('x')
 
@@ -14,6 +15,17 @@ def simple_derivative_question() -> Question:
     text_latex = r"\frac{d}{dx} \left( " + latexify(expression) + r" \right)"
 
     return Question(text_latex, derivative, "calculus_derivative_simple")
+
+def polynomial_derivative_question() -> Question:
+    # f(x) = polinomial max derajat 3
+    func = random_poly_nonconstant(3, -5, 5)
+
+    expression = func
+    
+    derivative = sp.diff(expression, x)
+    text_latex = r"\frac{d}{dx} \left( " + latexify(expression) + r" \right)"
+
+    return Question(text_latex, derivative, "calculus_derivative_polynomial")
 
 def trig_derivative_question() -> Question:
     # f(x) = a * trig(bx + c)
@@ -101,12 +113,11 @@ def inverse_trig_derivative_question() -> Question:
     return Question(text_latex, derivative, "calculus_derivative_inverse_trig")
 
 def high_order_derivative_question() -> Question:
-    # f(x) = ax^n, cari turunan ke-k
-    a = random.randint(1, 5)
-    n = random.randint(3, 6)
+    # f(x) = P(x), cari turunan ke-k
+    p = random_poly_nonconstant(3, -5, 5)
     k = random.randint(2, 4)
 
-    expression = a * x**n
+    expression = p
     derivative = sp.diff(expression, x, k)
     text_latex = r"\frac{d^{" + str(k) + r"}}{dx^{" + str(k) + r"}} \left( " + latexify(expression) + r" \right)"
 
@@ -115,6 +126,7 @@ def high_order_derivative_question() -> Question:
 def random_derivative_question() -> Question:
     question_generators = [
         simple_derivative_question,
+        polynomial_derivative_question,
         trig_derivative_question,
         exp_derivative_question,
         rational_derivative_question,

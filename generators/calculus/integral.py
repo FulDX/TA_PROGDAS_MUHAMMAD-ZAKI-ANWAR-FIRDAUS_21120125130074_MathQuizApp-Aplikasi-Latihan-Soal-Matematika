@@ -1,6 +1,7 @@
 import sympy as sp
 import random
 from mathapp.core import Question, latexify
+from generators.utils import random_poly_nonconstant
 
 x = sp.symbols('x')
 
@@ -14,6 +15,16 @@ def simple_integral_question() -> Question:
     textLatex = r"\int " + latexify(expression) + r" \, dx"
 
     return Question(textLatex, integral, "calculus_simple_integral", question_expression=expression)
+
+def polynomial_integral_question() -> Question:
+    func = random_poly_nonconstant(3, -5, 5)
+
+    expression = func
+    
+    integral = sp.integrate(expression, x)
+    textLatex = r"\int " + latexify(expression) + r" \, dx"
+
+    return Question(textLatex, integral, "calculus_polynomial_integral", question_expression=expression)
 
 def trig_integral_question() -> Question:
     # f(x) = a * trig(bx + c)
@@ -83,6 +94,7 @@ def inverseTrigIntegralQuestions() -> Question:
 def random_integral_question() -> Question:
     question_generators = [
         simple_integral_question,
+        polynomial_integral_question,
         trig_integral_question,
         exp_integral_question,
         rational_integral_question,

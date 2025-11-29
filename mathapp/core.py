@@ -48,7 +48,6 @@ def latexify(expr) -> str:
     return s
 
 def parseUserInput(userText: str) -> str:
-    """Prepare user input for sympy parsing: convert ^ -> **, normalize minus signs, etc."""
     if not isinstance(userText, str):
         raise ValueError("user_input must be a string")
     s = userText.strip()
@@ -56,6 +55,11 @@ def parseUserInput(userText: str) -> str:
     s = s.replace('^', '**')
     s = s.replace('−', '-')
     s = s.replace('ln', 'log')
+
+    s = s.replace('∞', 'oo')
+
+    import re as _re
+    s = _re.sub(r"\b(inf|infty|infinity)\b", 'oo', s, flags=_re.IGNORECASE)
     
     # biar bisa jawab x = ...
 
@@ -99,6 +103,9 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
             # Function lain
             'log': sp.log, 'ln': sp.log, 'sqrt': sp.sqrt, 'exp': sp.exp
         }
+        local_dict.update({
+            'oo': sp.oo, 'inf': sp.oo, 'infty': sp.oo, 'Infinity': sp.oo, '∞': sp.oo
+        })
         # kalo ada simbol bebas di jawaban, tambahin ke local_dict
         try:
             free_syms = getattr(question.get_answer_expression(), 'free_symbols', set())
@@ -163,6 +170,11 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
                     b_sym = sp.sympify(str(b))
                 except Exception:
                     return False
+            try:
+                if (a_sym == sp.oo and b_sym == sp.oo) or (a_sym == -sp.oo and b_sym == -sp.oo):
+                    return True
+            except Exception:
+                pass
             try:
                 if sp.simplify(a_sym - b_sym) == 0:
                     return True
