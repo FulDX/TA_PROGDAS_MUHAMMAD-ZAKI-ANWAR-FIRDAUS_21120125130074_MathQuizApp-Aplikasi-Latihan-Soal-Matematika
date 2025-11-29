@@ -107,7 +107,7 @@ def definite_integral_question() -> Question:
 def definite_integral_trig_question() -> Question:
     # f(x) = a * trig(bx) from x = p to x = q
     a = random.randint(1, 10)
-    b = random.randint(1, 5)
+    b = random.randint(1, 2)
     p = 0
     q = sp.pi / random.randint(1, 4)
 
