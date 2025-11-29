@@ -1,7 +1,7 @@
 import sympy as sp
 import random
 from mathapp.core import Question, latexify
-from generators.utils import random_poly_nonconstant
+from generators.utils import *
 
 x = sp.symbols('x')
 
@@ -78,7 +78,7 @@ def power_substitution_integral_question() -> Question:
 
     return Question(textLatex, integral, "calculus_power_substitution_integral", question_expression=expression)
 
-def inverseTrigIntegralQuestions() -> Question:
+def inverse_trig_integral_question() -> Question:
     # f(x) = a / sqrt(b^2 - (cx)^2) atau a / sqrt((cx)^2 - b^2) atau a / sqrt(b^2 + (cx)^2)
     a = random.randint(1, 10)
     b = random.randint(1, 3)
@@ -91,6 +91,65 @@ def inverseTrigIntegralQuestions() -> Question:
 
     return Question(textLatex, integral, "calculus_inverse_trig_integral", question_expression=expression)
 
+def definite_integral_question() -> Question:
+    # f(x) = a * x^n from x = p to x = q
+    a = random.randint(1, 10)
+    n = random.randint(1, 4)
+    p = random.randint(0, 5)
+    q = random.randint(p + 1, p + 6)
+
+    expression = a * x**n
+    integral = sp.integrate(expression, (x, p, q))
+    textLatex = r"\int_{" + latexify(sp.Integer(p)) + r"}^{" + latexify(sp.Integer(q)) + r"} " + latexify(expression) + r" \, dx"
+
+    return Question(textLatex, integral, "calculus_definite_integral", question_expression=expression)
+
+def definite_integral_trig_question() -> Question:
+    # f(x) = a * trig(bx) from x = p to x = q
+    a = random.randint(1, 10)
+    b = random.randint(1, 5)
+    p = 0
+    q = sp.pi / random.randint(1, 4)
+
+    trigs = [sp.sin, sp.cos]
+    function = random.choice(trigs)
+
+    expression = a * function(b * x)
+    integral = sp.integrate(expression, (x, p, q))
+    textLatex = r"\int_{" + latexify(sp.Integer(p)) + r"}^{" + latexify(q) + r"} " + latexify(expression) + r" \, dx"
+
+    return Question(textLatex, integral, "calculus_definite_integral_trig", question_expression=expression)
+
+def definite_integral_odd_even_question() -> Question:
+    # f(x) = even or odd function from x = -a to x = a
+    a = random.randint(1, 5)
+
+    kind = random.choice(["even", "odd"])
+    if kind == "even":
+        expression = random_even_trig()
+    else:
+        expression = random_odd_trig()
+
+    integral = sp.integrate(expression, (x, -a, a))
+    textLatex = r"\int_{" + latexify(sp.Integer(-a)) + r"}^{" + latexify(sp.Integer(a)) + r"} " + latexify(expression) + r" \, dx"
+
+    return Question(textLatex, integral, "calculus_definite_integral_odd_even", question_expression=expression)
+
+def definite_integral_odd_even_trig_question() -> Question:
+    # f(x) = even or odd trig function from x = -a to x = a
+    a = sp.pi / random.randint(1, 4)
+
+    kind = random.choice(["even", "odd"])
+    if kind == "even":
+        expression = random_even_trig()
+    else:
+        expression = random_odd_trig()
+
+    integral = sp.integrate(expression, (x, -a, a))
+    textLatex = r"\int_{" + latexify(sp.Integer(-a)) + r"}^{" + latexify(sp.Integer(a)) + r"} " + latexify(expression) + r" \, dx"
+
+    return Question(textLatex, integral, "calculus_definite_integral_odd_even_trig", question_expression=expression)
+
 def random_integral_question() -> Question:
     question_generators = [
         simple_integral_question,
@@ -99,7 +158,11 @@ def random_integral_question() -> Question:
         exp_integral_question,
         rational_integral_question,
         power_substitution_integral_question,
-        inverseTrigIntegralQuestions
+        inverse_trig_integral_question,
+        definite_integral_question,
+        definite_integral_trig_question,
+        definite_integral_odd_even_question,
+        definite_integral_odd_even_trig_question
     ]
     generator = random.choice(question_generators)
     return generator()
