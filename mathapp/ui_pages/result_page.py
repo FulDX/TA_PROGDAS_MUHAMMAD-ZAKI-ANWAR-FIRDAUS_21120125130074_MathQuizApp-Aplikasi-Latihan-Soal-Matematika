@@ -118,8 +118,53 @@ class ResultPage(ttk.Frame):
         self.back_button.place(x=20, y=520, width=140, height=50)
         apply_click_effect(self.back_button, swap=True)
 
-    def update_result(self, tipe, benar, salah, rating):
+    def rating_score(self, score: int) -> str:
+        if score >= 9:
+            return 'A'
+        elif score >= 7:
+            return 'B'
+        elif score >= 5:
+            return 'C'
+        elif score >= 3:
+            return 'D'
+        else:
+            return 'E'
+
+    def update_result(self, tipe, benar, salah):
         self.tipe_value.config(text=tipe)
         self.benar_value.config(text=f"{benar}/10")
         self.salah_value.config(text=f"{salah}/10")
-        self.rating_value.config(text=rating)
+        self.rating_value.config(text=self.rating_score(benar))
+
+class ResultEndlessPage(ResultPage):
+    def __init__(self, parent, controller):
+        super().__init__(parent, controller)
+
+        self.rating_title.place_forget()
+        self.rating_value.place_forget()
+
+        self.total_soal_title = tk.Label(
+            self.box,
+            text="Total Soal:",
+            bg="#D9D9D9",
+            fg="black",
+            anchor="center",
+            font=("Helvetica", 22, "bold")
+        )
+        self.total_soal_title.place(x=0, y=170, width=346, height=40)
+
+        self.total_soal_value = tk.Label(
+            self.box,
+            text="B",
+            bg="#D9D9D9",
+            fg="black",
+            anchor="center",
+            font=("Helvetica", 100, "bold")
+        )
+        self.total_soal_value.place(x=0, y=210, width=346, height=150)
+
+    def update_result(self, tipe, benar, salah):
+        self.tipe_value.config(text=tipe)
+        self.benar_value.config(text=f"{benar}")
+        self.salah_value.config(text=f"{salah}")
+        self.total_soal_value.config(text=f"{benar + salah}")

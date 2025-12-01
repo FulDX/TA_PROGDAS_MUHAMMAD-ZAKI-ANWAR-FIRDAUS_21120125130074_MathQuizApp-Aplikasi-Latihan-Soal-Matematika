@@ -19,11 +19,11 @@ class Question:
     def get_category(self):
         return self.__category
     
+    def get_question_expression(self):
+        return self.__question_expression
+    
     def set_category(self, category):
         self.__category = category
-
-    def get_question_expression(self):
-        return getattr(self, '_Question__question_expression', None)
 
     def set_question_expression(self, expr):
         self.__question_expression = expr
@@ -38,6 +38,12 @@ def latexify(expr) -> str:
     s = s.replace('cos^{-1}', '\\arccos')
     s = s.replace('\\tan^{-1}', '\\arctan')
     s = s.replace('tan^{-1}', '\\arctan')
+    s = s.replace('\\sec^{-1}', '\\arcsec')
+    s = s.replace('sec^{-1}', '\\arcsec')
+    s = s.replace('\\csc^{-1}', '\\arccsc')
+    s = s.replace('csc^{-1}', '\\arccsc')
+    s = s.replace('\\cot^{-1}', '\\arccot')
+    s = s.replace('cot^{-1}', '\\arccot')
     
     s = s.replace('asin', 'arcsin')
     s = s.replace('acos', 'arccos')
@@ -45,6 +51,7 @@ def latexify(expr) -> str:
     s = s.replace('asec', 'arcsec')
     s = s.replace('acsc', 'arccsc')
     s = s.replace('acot', 'arccot')
+    
     return s
 
 def parseUserInput(userText: str) -> str:
@@ -264,12 +271,45 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
 
         # Cek integral
         if isinstance(question.get_category(), str) and 'integral' in question.get_category():
-            # Cek dengan turunan pertama dari userAnswer dan answerExpression == 0
+            
             userExpression = userExpressions[0] if userExpressions else None
             if userExpression is None:
                 return False
-            check = sp.simplify(sp.diff(userExpression - question.get_answer_expression(), x))
-            return check == 0
+            try:
+                category = question.get_category()
+            except Exception:
+                category = None
+            if isinstance(category, str) and 'definite' in category:
+                # Untuk integral tentu, cek langsung nilai numeriknya
+                correct_val = question.get_answer_expression()
+                try:
+                    diff = sp.N(userExpression - correct_val)
+                    if abs(diff) < 1e-9:
+                        return True
+                except Exception:
+                    try:
+                        if abs(float(sp.N(userExpression)) - float(sp.N(correct_val))) < 1e-9:
+                            return True
+                    except Exception:
+                        return False
+                return False
+            else:
+                # Untuk integral tak tentu, cek dengan turunan pertama dari userAnswer - answerExpression == 0
+                try:
+                    check = sp.simplify(sp.diff(userExpression - question.get_answer_expression(), x))
+                    return check == 0
+                except Exception:
+                    # kalo gagal, coba cek di beberapa titik
+                    try:
+                        pts = [0, 1, 2]
+                        for p in pts:
+                            d_user = float(sp.N(sp.diff(userExpression, x).subs(x, p)))
+                            d_correct = float(sp.N(sp.diff(question.get_answer_expression(), x).subs(x, p)))
+                            if abs(d_user - d_correct) > 1e-6:
+                                return False
+                        return True
+                    except Exception:
+                        return False
         else:
             correct = question.get_answer_expression()
             if isinstance(correct, (list, tuple, set)):
@@ -308,7 +348,6 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
                                 continue
                     if not matched:
                         return False
-                
                 return True
             
             if isinstance(correct, (list, tuple, set)) and len(userExpressions) == 1:

@@ -5,7 +5,7 @@ from mathapp.ui_pages.main_page import MainMenu
 from mathapp.ui_pages.start_page import MulaiPage, EndlessPage
 from mathapp.ui_pages.type_page import BasicPage, DeretPage, KalkulusPage
 from mathapp.ui_pages.question_page import QuestionPage, QuestionEndlessPage
-from mathapp.ui_pages.result_page import ResultPage
+from mathapp.ui_pages.result_page import ResultPage, ResultEndlessPage
 
 
 class App(tk.Tk):
@@ -30,7 +30,7 @@ class App(tk.Tk):
         self.frames = {}
 
         for F in (MainMenu, MulaiPage, BasicPage, DeretPage, KalkulusPage,
-                  QuestionPage, QuestionEndlessPage, EndlessPage, ResultPage):
+                  QuestionPage, QuestionEndlessPage, EndlessPage, ResultPage, ResultEndlessPage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")

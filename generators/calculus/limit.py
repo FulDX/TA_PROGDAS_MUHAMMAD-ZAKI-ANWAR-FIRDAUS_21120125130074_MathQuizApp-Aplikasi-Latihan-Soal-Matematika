@@ -6,7 +6,7 @@ from generators.utils import random_poly_nonconstant
 x = sp.symbols('x')
 
 def limit_polynomial_question() -> Question:
-    # lim x->p f(x) = ax^3 + bx^2 + cx + d
+    # lim x->p f(x) = ax^3 + bx^2 + cx + d 
     a = random.randint(1, 5)
     b = random.randint(-5, 5)
     c = random.randint(-5, 5)

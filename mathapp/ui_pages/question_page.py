@@ -3,6 +3,7 @@ from tkinter import ttk
 
 import random
 
+from mathapp.ui_pages.result_page import ResultEndlessPage
 from mathapp.ui_utils import apply_click_effect
 
 from generators.basic_math.arithmetic import random_arithmetic_question
@@ -127,11 +128,7 @@ class QuestionPage(ttk.Frame):
             self.benar_label.config(text=f"Benar: {self.benar_value}")
             self.salah_label.config(text=f"Salah: {self.salah_value}")
             self.question_number_label.config(text=f"{self.question_index}/10")
-
-            try:
-                self.answer_var.set("")
-            except Exception:
-                pass
+            self.answer_var.set("")
 
             try:
                 if isinstance(self.question_box, tk.Canvas):
@@ -148,37 +145,35 @@ class QuestionPage(ttk.Frame):
         self.next_question()
 
     def next_question(self):
-        self.question_index = getattr(self, 'question_index', 0) + 1
-        try:
-            self.question_number_label.config(text=f"{self.question_index}/10")
-        except Exception:
-            pass
+        self.question_index += 1
+        self.question_number_label.config(text=f"{self.question_index}/10")
+        
 
-        if getattr(self, 'kind', None) == 'arithmetic':
+        if self.kind == 'arithmetic':
             q = random_arithmetic_question()
             self.type_label = "Aritmetika"
-        elif getattr(self, 'kind', None) == 'algebra':
+        elif self.kind == 'algebra':
             q = random_algebra_question()
             self.type_label = "Aljabar"
-        elif getattr(self, 'kind', None) == 'explog':
+        elif self.kind == 'explog':
             q = random_explog_question()
             self.type_label = "ExpLog"
-        elif getattr(self, 'kind', None) == 'arithmetic_ser':
+        elif self.kind == 'arithmetic_ser':
             q = arithmetic_series_question()
             self.type_label = "Der-At"
-        elif getattr(self, 'kind', None) == 'geometric_serfin':
+        elif self.kind == 'geometric_serfin':
             q = geometric_series_question()
             self.type_label = "Der-Gt-Fin"
-        elif getattr(self, 'kind', None) == 'geometric_serinf':
+        elif self.kind == 'geometric_serinf':
             q = geometric_infinite_series_question()
             self.type_label = "Der-Gt-Inf"
-        elif getattr(self, 'kind', None) == 'limit':
+        elif self.kind == 'limit':
             q = random_limit_question()
             self.type_label = "Limit"
-        elif getattr(self, 'kind', None) == 'derivative':
+        elif self.kind == 'derivative':
             q = random_derivative_question()
             self.type_label = "Turunan"
-        elif getattr(self, 'kind', None) == 'integral':
+        elif self.kind == 'integral':
             q = random_integral_question()
             self.type_label = "Integral"
         else:
@@ -228,33 +223,27 @@ class QuestionPage(ttk.Frame):
         self.answer_var.set("")
 
     def submit_answer(self):
-        user = self.answer_var.get().strip()
-        q = self.controller.current_question
-        if checkMathAnswer(user, q):
+        user_answer = self.answer_var.get().strip()
+
+        if user_answer == "":
+            return
+
+        question = self.controller.current_question
+
+        if checkMathAnswer(user_answer, question):
             self.benar_value += 1
             self.benar_label.config(text=f"Benar: {self.benar_value}")
         else:
             self.salah_value += 1
             self.salah_label.config(text=f"Salah: {self.salah_value}")
         
-        if getattr(self, 'mode', None) == 'standard' and getattr(self, 'question_index', 0) >= 10:
+        if self.mode == "standard" and self.question_index >= 10:
             
-            score = getattr(self, 'benar_value', 0)
-            if score >= 9:
-                rating = 'A'
-            elif score >= 7:
-                rating = 'B'
-            elif score >= 5:
-                rating = 'C'
-            elif score >= 3:
-                rating = 'D'
-            else:
-                rating = 'E'
             try:
                 from .result_page import ResultPage
                 result_page = self.controller.frames[ResultPage]
                 tipe = self.type_label
-                result_page.update_result(tipe, self.benar_value, self.salah_value, rating)
+                result_page.update_result(tipe, self.benar_value, self.salah_value)
                 self.controller.show_frame(ResultPage)
             except Exception:
                 import traceback
@@ -272,21 +261,16 @@ class QuestionPage(ttk.Frame):
 class QuestionEndlessPage(QuestionPage):
     def __init__(self, parent, controller):
         super().__init__(parent, controller)
-        try:
-            try:
-                self.question_number_label.place_forget()
-            except Exception:
-                pass
-            self.question_endless_label = ttk.Label(
-                self, text="Endless",
-                background=controller.page_bg,
-                foreground="red",
-                font=("Helvetica", 30, "bold"),
-                anchor='nw', justify='left'
-            )
-            self.question_endless_label.place(x=323, y=19, width=156, height=47)
-        except Exception:
-            pass
+
+        self.question_number_label.place_forget()
+        self.question_endless_label = ttk.Label(
+            self, text="Endless",
+            background=controller.page_bg,
+            foreground="red",
+            font=("Helvetica", 30, "bold"),
+            anchor='nw', justify='left'
+        )
+        self.question_endless_label.place(x=323, y=19, width=156, height=47)
 
         self.submit_button = tk.Button(
             self,
@@ -311,36 +295,54 @@ class QuestionEndlessPage(QuestionPage):
         )
         self.back_button.place(x=20, y=500, width=120, height=40)
         apply_click_effect(self.back_button, swap=True)
+
+        self.end_button = tk.Button(
+            self,
+            text="Selesaikan",
+            bg="black",
+            fg="white",
+            font=("Helvetica", 15, "bold"),
+            borderwidth=0
+        )
+        self.end_button.place(x=663, y=500, width=120, height=40)
+        apply_click_effect(self.end_button, swap=True)
         
         def _back_to_start():
             from .start_page import EndlessPage
             controller.show_frame(EndlessPage)
         self.back_button.config(command=_back_to_start)
 
+        def _end_endless():
+            from .result_page import ResultEndlessPage
+            result_page = self.controller.frames[ResultEndlessPage]
+            tipe = self.type_label
+            result_page.update_result(tipe, self.benar_value, self.salah_value)
+            self.controller.show_frame(ResultEndlessPage)
+        self.end_button.config(command=_end_endless)
+
     def start_mode(self, mode="endless", kind=None):
         super().start_mode(mode=mode, kind=kind)
         
-
     def next_question(self):
 
-        if getattr(self, 'kind', None) == 'basic':
+        if self.kind == 'basic':
             q = random.choice([
                 random_arithmetic_question,
                 random_algebra_question,
                 random_explog_question
             ])()
             self.type_label = "Basic"
-        elif getattr(self, 'kind', None) == 'series':
+        elif self.kind == 'series':
             q = random_series_question()
             self.type_label = "Deret"
-        elif getattr(self, 'kind', None) == 'calculus':
+        elif self.kind == 'calculus':
             q = random.choice([
                 random_limit_question,
                 random_derivative_question,
                 random_integral_question
             ])()
             self.type_label = "Kalkulus"
-        elif getattr(self, 'kind', None) == 'all':
+        elif self.kind == 'all':
             q = random.choice([
                 random_arithmetic_question,
                 random_algebra_question,
@@ -355,12 +357,9 @@ class QuestionEndlessPage(QuestionPage):
             print("Unknown kind for endless mode")
             return
 
-        try:
-            self.controller.current_question = q
-            self.title_label.config(text=self.type_label)
-            self.render_question(q)
-        except Exception:
-            pass
+        self.controller.current_question = q
+        self.title_label.config(text=self.type_label)
+        self.render_question(q)
 
     def render_question(self, question: Question):
         super().render_question(question)

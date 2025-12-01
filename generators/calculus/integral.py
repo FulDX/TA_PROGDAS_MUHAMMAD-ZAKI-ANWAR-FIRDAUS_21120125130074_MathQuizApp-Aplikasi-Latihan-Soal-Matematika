@@ -131,7 +131,7 @@ def definite_integral_odd_even_question() -> Question:
         expression = random_odd_trig()
 
     integral = sp.integrate(expression, (x, -a, a))
-    textLatex = r"\int_{" + latexify(sp.Integer(-a)) + r"}^{" + latexify(sp.Integer(a)) + r"} " + latexify(expression) + r" \, dx"
+    textLatex = r"\int_{" + latexify(-a) + r"}^{" + latexify(a) + r"} " + latexify(expression) + r" \, dx"
 
     return Question(textLatex, integral, "calculus_definite_integral_odd_even", question_expression=expression)
 
@@ -146,7 +146,7 @@ def definite_integral_odd_even_trig_question() -> Question:
         expression = random_odd_trig()
 
     integral = sp.integrate(expression, (x, -a, a))
-    textLatex = r"\int_{" + latexify(sp.Integer(-a)) + r"}^{" + latexify(sp.Integer(a)) + r"} " + latexify(expression) + r" \, dx"
+    textLatex = r"\int_{" + latexify(-a) + r"}^{" + latexify(a) + r"} " + latexify(expression) + r" \, dx"
 
     return Question(textLatex, integral, "calculus_definite_integral_odd_even_trig", question_expression=expression)
 
