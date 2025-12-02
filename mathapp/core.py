@@ -167,6 +167,13 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
         userExpression = userExpressions[0] if userExpressions else None
 
         
+        # ------------------------------
+        # Define helper matchers
+        #    - _sympy_equal: symbolically compare two expressions
+        #    - _numeric_close: numeric tolerance check
+        #    - _match_single_candidate: compare user expr with one candidate
+        #    - _match_user_expressions_to_candidates: match multiple answers to candidates
+        # ------------------------------
         def _sympy_equal(a, b, tol=1e-9):
             try:
                 a_sym = sp.sympify(a)
@@ -217,6 +224,44 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
             return False
 
         
+        def _numeric_close(a, b, tol=1e-9):
+            try:
+                da = float(sp.N(a))
+                db = float(sp.N(b))
+                return abs(da - db) < tol
+            except Exception:
+                return False
+
+        def _match_single_candidate(ue, candidate):
+            try:
+                if _sympy_equal(ue, candidate):
+                    return True
+                diff = sp.N(ue - candidate)
+                if abs(diff) < 1e-9:
+                    return True
+            except Exception:
+                if _numeric_close(ue, candidate):
+                    return True
+            return False
+
+        def _match_user_expressions_to_candidates(user_exprs, candidates):
+            # match each user expression to a unique candidate (order unimportant)
+            if len(user_exprs) != len(candidates):
+                return False
+            used = [False] * len(candidates)
+            for ue in user_exprs:
+                matched = False
+                for i, cand in enumerate(candidates):
+                    if used[i]:
+                        continue
+                    if _match_single_candidate(ue, cand):
+                        used[i] = True
+                        matched = True
+                        break
+                if not matched:
+                    return False
+            return True
+
         try:
             question_expr = question.get_question_expression()
         except Exception:
@@ -250,7 +295,7 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
                     qn = _normalize_token_str(qtxt)
                     if tn == qn:
                         return False
-                    
+                    # Cegah biar user nggak cuma nyalin soal
                     try:
                         if op_re.search(t) and sp.srepr(ue_struct) == sp.srepr(question_expr):
                             return False
@@ -310,6 +355,13 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
                         return True
                     except Exception:
                         return False
+        # ------------------------------
+        # Multi-answer and single-answer handling
+        #    - if `correct` is a collection, we need to compare either:
+        #      a) user provides same number of answers -> one-to-one matching
+        #      b) correct is collection size 1 -> alternative answers (accept single)
+        #      c) otherwise -> reject (user must provide all solutions)
+        # ------------------------------
         else:
             correct = question.get_answer_expression()
             if isinstance(correct, (list, tuple, set)):
@@ -350,43 +402,26 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
                         return False
                 return True
             
-            if isinstance(correct, (list, tuple, set)) and len(userExpressions) == 1:
-                ue = userExpressions[0]
-                for candidate in correct:
-                    try:
-                        if _sympy_equal(ue, candidate):
-                            return True
-                        diff = sp.N(ue - candidate)
-                        if abs(diff) < 1e-9:
-                            return True
-                    except Exception:
-                        try:
-                            diff = float(sp.N(ue) - sp.N(candidate))
-                            if abs(diff) < 1e-9:
-                                return True
-                        except Exception:
-                            continue
+            if isinstance(correct, (list, tuple, set)):
+                # Jika user memberikan jumlah jawaban yang sama dengan kandidat, cocokkan 1-ke-1
+                if len(userExpressions) == len(list(correct)):
+                    return _match_user_expressions_to_candidates(userExpressions, list(correct))
+                # Jika hanya ada 1 kandidat, cocokkan langsung
+                if len(list(correct)) == 1 and len(userExpressions) == 1:
+                    return _match_single_candidate(userExpressions[0], list(correct)[0])
+                # Jika tidak, anggap salah
                 return False
             
             if isinstance(correct, (list, tuple, set)):
-                for candidate in correct:
-                    try:
-                        
-                        if _sympy_equal(userExpressions[0], candidate):
+                # Jika user memberikan satu ekspresi, periksa apakah cocok dengan salah satu kandidat
+                if len(userExpressions) == 1:
+                    ue = userExpressions[0]
+                    for candidate in correct:
+                        if _match_single_candidate(ue, candidate):
                             return True
-                        
-                        diff = sp.N(userExpressions[0] - candidate)
-                        if abs(diff) < 1e-9:
-                            return True
-                    except Exception:
-                       
-                        try:
-                            diff = float(sp.N(userExpression) - sp.N(candidate))
-                            if abs(diff) < 1e-9:
-                                return True
-                        except Exception:
-                            continue
-                return False
+                    return False
+                # Jika user memberikan beberapa ekspresi, cocokkan semua dengan kandidat
+                return _match_user_expressions_to_candidates(userExpressions, list(correct))
             else:
                 return _sympy_equal(userExpression, correct)
     except Exception as e:

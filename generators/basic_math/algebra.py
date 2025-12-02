@@ -20,8 +20,8 @@ def linear_question() -> Question:
 
 def quadratic_question() -> Question:
     # f(x) = ax^2 + bx + c from (x - x1)(x - x2)
-    x1 = random.randint(1, 5)
-    x2 = random.randint(1, 5)
+    x1 = random.randint(-5, 5)
+    x2 = random.randint(-5, 5)
 
     equation = sp.Eq(x**2 - (x1 + x2) * x + x1 * x2, 0)
     solution = sp.solve(equation, x)
