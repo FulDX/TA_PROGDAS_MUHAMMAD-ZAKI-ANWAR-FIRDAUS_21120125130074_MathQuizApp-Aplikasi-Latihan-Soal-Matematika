@@ -268,7 +268,7 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
             question_expr = None
         if question_expr is not None:
             import re
-            op_re = re.compile(r"[\+\-\*\/\^×÷]")
+            op_re = re.compile(r"[\+\*\/\^×÷]")
             def _normalize_token_str(s):
                 s = s.strip()
                 # ganti common latex operators ke textual equivalents
@@ -297,7 +297,9 @@ def checkMathAnswer(userInput: str, question: Question) -> bool:
                         return False
                     # Cegah biar user nggak cuma nyalin soal
                     try:
-                        if op_re.search(t) and sp.srepr(ue_struct) == sp.srepr(question_expr):
+                        # treat only infix operators (not a leading sign) as copying the question
+                        has_infix_op = any(op in t[1:] for op in ['+', '-', '*', '/', '^', '×', '÷'])
+                        if has_infix_op and sp.srepr(ue_struct) == sp.srepr(question_expr):
                             return False
                     except Exception:
                         pass
